@@ -6,6 +6,7 @@ import {
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod';
 import type { Env } from './config/env';
+import { errorHandlerPlugin } from './plugins/error-handler';
 import { registerRoutes } from './routes';
 
 export async function buildApp(env: Env): Promise<FastifyInstance> {
@@ -23,6 +24,8 @@ export async function buildApp(env: Env): Promise<FastifyInstance> {
   app.setSerializerCompiler(serializerCompiler);
 
   await app.register(sensible);
+  await errorHandlerPlugin(app);
+  
   await app.register(registerRoutes);
 
   return app;
