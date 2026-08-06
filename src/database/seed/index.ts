@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse } from 'csv-parse/sync';
 import { sql } from "drizzle-orm/sql/sql";
-import { db } from '../conn';
+import { db } from '@conn';
 import { movies } from '../schema';
 import { AppError } from '../../shared/errors/app-error';
 import { INGESTION_DIR, CSV_DELIMITER, EXPECTED_COLUMNS } from './seed.constants';
@@ -12,10 +12,10 @@ function createMovieTable(): void {
   db.run(sql`
     CREATE TABLE IF NOT EXISTS movies (
         id INTEGER PRIMARY KEY,
-        year INTEGER,
+        year INTEGER NOT NULL,
         title TEXT,
         studios TEXT,
-        producers TEXT,
+        producers TEXT NOT NULL,
         winner INTEGER DEFAULT 0
     )`
   );
@@ -76,17 +76,17 @@ function parseCsvFile(filePath: string): MovieRow[] {
   }
 
   return records.map((record) => ({
-    year: record.year ? parseInt(record.year, 10) : undefined,
+    year: record.year ? parseInt(record.year, 10) : 1900,
     title: record.title,
     studios: record.studios,
-    producers: record.producers,
+    producers: record.producers ?? '',
     winner: record.winner === 'yes' || record.winner === 'true',
   }));
 }
 
 export function seedDatabase(): void {
   const csvFilePaths = listCsvFiles(INGESTION_DIR);
-  const rows = csvFilePaths.flatMap(parseCsvFile);
+  const rows: MovieRow[] = csvFilePaths.flatMap(parseCsvFile);
 
   if (rows.length === 0) {
     throw new AppError('Não existem arquivos para montar o banco de dados.', 500);
