@@ -10,7 +10,6 @@ export async function intervalsRoutes(app: FastifyInstance): Promise<void> {
     handler: getIntervals,
     schema: {
       tags: ['Awards'],
-      summary: 'Get producers with the minimum and maximum interval between two consecutive wins',
       response: {
         200: intervalsResponseSchema,
       },

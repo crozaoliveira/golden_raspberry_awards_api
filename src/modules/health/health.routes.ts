@@ -7,6 +7,7 @@ export async function healthRoutes(app: FastifyInstance): Promise<void> {
   app.withTypeProvider<ZodTypeProvider>().route({
     method: 'GET',
     url: '/health',
+    handler: getHealth,
     schema: {
       tags: ['Health'],
       summary: 'Get API health status',
@@ -14,6 +15,5 @@ export async function healthRoutes(app: FastifyInstance): Promise<void> {
         200: healthResponseSchema,
       },
     },
-    handler: getHealth,
   });
 }
