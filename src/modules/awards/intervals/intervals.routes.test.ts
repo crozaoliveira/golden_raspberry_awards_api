@@ -4,6 +4,7 @@ import { buildApp } from '@/app';
 import { loadEnv } from '@/config/env';
 import { db, sqlite } from '@conn';
 import { movies } from '@database/schema';
+import { seedDatabase } from '@database/seed';
 import type { IntervalsResponse } from './intervals.schema';
 
 const ENDPOINT = '/api/v1/awards/intervals';
@@ -139,6 +140,18 @@ describe('GET /api/v1/awards/intervals', () => {
 
     const allProducers = [...body.min, ...body.max].map((entry) => entry.producer);
     expect(allProducers).not.toContain('Producer Three');
+  });
+
+  it('Retorna os intervalos calculados a partir do arquivo padrão de ingestão (Movielist.csv)', async () => {
+    seedDatabase();
+
+    const response = await app.inject({ method: 'GET', url: ENDPOINT });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json<IntervalsResponse>()).toEqual({
+      min: [{ producer: 'Joel Silver', interval: 1, previousWin: 1990, followingWin: 1991 }],
+      max: [{ producer: 'Matthew Vaughn', interval: 13, previousWin: 2002, followingWin: 2015 }],
+    });
   });
 
   it('Retorna erro 500 quando ocorre algum problema no banco de dados', async () => {

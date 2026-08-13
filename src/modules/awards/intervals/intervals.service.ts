@@ -35,29 +35,41 @@ export class IntervalsService {
       normalizeProducers(movie, producersMap);
     });
 
-    const intervals: Interval[] = Array.from(producersMap.entries()).flatMap(([producer, years]) => {
-      if(years.length < 2) return [];
+    const intervals: Interval[] = []; 
+    
+    for (const [producer, years] of producersMap) {
+      if (years.length < 2) continue;
 
       years.sort((a, b) => a - b);
 
-      return years.slice(1).map((year, index) => ({
-        producer,
-        interval: year - years[index],
-        previousWin: years[index],
-        followingWin: year,
-      }));
-    });
-
-    const minInterval = Math.min(...intervals.map((i) => i.interval));
-    const maxInterval = Math.max(...intervals.map((i) => i.interval));
-
-    return {
-      min: [
-        ...intervals.filter((i) => i.interval === minInterval)
-      ],
-      max: [
-        ...intervals.filter((i) => i.interval === maxInterval)
-      ],
+      for (let i = 1; i < years.length; i++) {
+        intervals.push({
+          producer,
+          interval: years[i] - years[i - 1],
+          previousWin: years[i - 1],
+          followingWin: years[i],
+        });
+      }
     };
+
+    const { min, max } = intervals.reduce<{ min: Interval[]; max: Interval[]; minVal: number; maxVal: number }>((acc, interval) => {
+      if (interval.interval < acc.minVal) {
+        acc.minVal = interval.interval;
+        acc.min = [interval];
+      } else if (interval.interval === acc.minVal) {
+        acc.min.push(interval);
+      }
+
+      if (interval.interval > acc.maxVal) {
+        acc.maxVal = interval.interval;
+        acc.max = [interval];
+      } else if (interval.interval === acc.maxVal) {
+        acc.max.push(interval);
+      }
+
+      return acc;
+    }, { min: [], max: [], minVal: Infinity, maxVal: -Infinity });
+
+    return { min, max };
   }
 }
